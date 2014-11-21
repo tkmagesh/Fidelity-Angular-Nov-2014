@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Click Tracker</title>
+    <script>
+        (function (){
+            var counter = 0;
+            function incCount(){
+                ++counter;
+                var divMessage = document.getElementById("divMessage");
+                divMessage.innerHTML = counter;
+            }
+            function init(){
+                var btnTrack = document.getElementById("btnTrack");
+                btnTrack.addEventListener("click", incCount);
+            }
+            window.addEventListener("DOMContentLoaded",init);
+        })();
+    </script>
+</head>
+<body>
+    <input type="button" value="Track" id="btnTrack">
+    <div id="divMessage"></div>
+</body>
+</html>
