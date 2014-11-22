@@ -13,48 +13,59 @@
         #olTaskList > li{
             cursor: pointer;
         }
+        .divMessage{
+            margin: 5px;
+            padding: 5px;
+            border: 2px solid black;
+            border-radius: 3px;
+            background: -webkit-linear-gradient(top,  gray 0% ,  #fff 100% );
+        }
+        #divMessages{
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            
+        }
     </style>
+    <script src="jquery-2.1.1.js"></script>
     <script>
     (function(){
-        window.addEventListener("DOMContentLoaded", init);
-        function init(){
-            var btnAdd= document.getElementById("btnAdd");
-            btnAdd.addEventListener("click",onBtnAddClick);
+        $(function (){
+            $("#btnAdd").on("click",onBtnAddClick);
+            $("#btnRemoveCompleted").click(onBtnRemoveCompletedClick);
+            //$("#olTaskList").on("click", "li", onTaskItemClick); 
+            $("#olTaskList").delegate("li", "click", onTaskItemClick); 
             
-            var btnRemoveCompleted = document.getElementById("btnRemoveCompleted");
-            btnRemoveCompleted.addEventListener("click",onBtnRemoveCompletedClick);
-            
-            var olTaskList = document.getElementById("olTaskList");
-            for(var i=olTaskList.children.length-1;i>=0;i--){
-                var taskItem = olTaskList.children[i];
-                taskItem.addEventListener("click",onTaskItemClick);
-            }
-        }
+            setInterval(function(){
+                displayMessage("Current time is " + new Date().toTimeString());
+            },5000)
+        });
         function onBtnAddClick(){
-            var newTask = document.getElementById("txtTask").value;
-            var olTaskList = document.getElementById("olTaskList");
-            
-            var newTaskItem = document.createElement("li");
-            newTaskItem.innerHTML = newTask;
-            newTaskItem.addEventListener("click", onTaskItemClick);
-            olTaskList.appendChild(newTaskItem);
+            if ($("#txtTask").val() !== ""){
+                $("<li></li>")
+                    .html($("#txtTask").val())
+                    .appendTo("#olTaskList");
+                displayMessage("A new task is added");
+            }
         }
-        
         function onTaskItemClick(){
-            if (this.classList.contains("completed")){
-                this.classList.remove("completed");
-            } else {
-                this.classList.add("completed");
-            }
+            $(this).toggleClass("completed");
         }
-        
         function onBtnRemoveCompletedClick(){
-            var olTaskList = document.getElementById("olTaskList");
-            for(var i=olTaskList.children.length-1;i>=0;i--){
-                var taskItem = olTaskList.children[i];
-                if (taskItem.classList.contains("completed"))
-                    taskItem.remove();
-            }
+            $("#olTaskList > li.completed").remove();
+            displayMessage("Zero or more completed tasks are removed");
+        }
+        function displayMessage(msg){
+            $("<div></div>")
+                .addClass("divMessage")
+                .hide()
+                .html(msg)
+                .appendTo("#divMessages")
+                .slideDown('slow')
+                .delay(2000)
+                .slideUp('fast', function(){
+                    $(this).remove();
+                });
         }
     })();
     </script>
@@ -71,6 +82,6 @@
         <li>Task - 2</li>
         <li>Task - 3</li>
     </ol>
-    <div id="divMessage"></div>
+    <div id="divMessages"></div>
 </body>
 </html>
