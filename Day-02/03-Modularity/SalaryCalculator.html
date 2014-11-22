@@ -40,10 +40,11 @@
             this.removeSubscriber = function(){
                 //
             };
+            var _self = this;
             function triggerSubscriptions (attrName, evtArgArr){
                 var subscriptionFns = _subscribers[attrName] || [];
                 subscriptionFns.forEach(function(subscriptionFn){
-                    subscriptionFn.apply(this, evtArgArr);
+                    subscriptionFn.apply(_self, evtArgArr);
                 });
             }
             
@@ -61,7 +62,8 @@
             
             //model changes
             calculator.addSubscriber('salary', function(value){
-                $("#divResult").html(value);
+                console.log(this);
+                $("#divResult").html(this.get('salary'));
             });
 
             calculator.addSubscriber('basic', function(value){
@@ -83,7 +85,7 @@
             
             //view changes
             $("#txtBasic").change(function(){
-                calculator.set('basic',parseInt($("#txtBasic").val(),10));
+                calculator.set('basic',this.value,10);
             });
             $("#txtHra").change(function(){
                 calculator.set('hra', parseInt($("#txtHra").val(),10));
