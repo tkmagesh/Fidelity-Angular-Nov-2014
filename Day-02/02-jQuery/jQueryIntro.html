@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>jQuery Intro</title>
+    <style>
+        input {
+            display: block;
+        }
+        .highlight {
+                border : 2px solid red;
+            }
+        
+    </style>
+    <script src="jquery-2.1.1.js"></script>
+    <script>
+        function highlight(jQObj){
+            jQObj.addClass('highlight');
+        }
+        function clearAll(){
+            jQuery("*").removeClass("highlight");
+        }
+    </script>
+</head>
+<body>
+    <input type="text" name="" id="txtFirstName" class="nameBox">
+    <input type="text" name="" id="txtLastName" class="nameBox">
+    <input type="text" name="" id="txtAge" class="numberBox">
+    <input type="button" value="Save" id="btnSave">
+    <div id="divMessage"></div>
+</body>
+</html>
