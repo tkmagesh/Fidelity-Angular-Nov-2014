@@ -27,33 +27,34 @@
 			this.isCompleted = !this.isCompleted;
 		};
 
+
 		//Task Storage constructor function
-		function TaskStorage(){
-
-		};
-
-		TaskStorage.prototype.save = function(task){
-			task.id = task.id || new Date().getTime().toString();
-			localStorage.setItem(task.id, JSON.stringify(task));
-			return new Task(task);
-		};
-		TaskStorage.prototype.remove = function(taskId){
-			localStorage.removeItem(taskId);
-		};
-		TaskStorage.prototype.getAll = function(){
-			var result = [];
-			for(var i=0;i<localStorage.length;i++){
-				var key = localStorage.key(i);
-				var taskAsString = localStorage.getItem(key);
-				result.push(new Task(JSON.parse(taskAsString)))
+		taskManager.service('taskStorage', function TaskStorage(){
+			this.save = function(task){
+				task.id = task.id || new Date().getTime().toString();
+				localStorage.setItem(task.id, JSON.stringify(task));
+				return new Task(task);
+			};
+			this.remove = function(taskId){
+				localStorage.removeItem(taskId);
+			};
+			this.getAll = function(){
+				var result = [];
+				for(var i=0;i<localStorage.length;i++){
+					var key = localStorage.key(i);
+					var taskAsString = localStorage.getItem(key);
+					result.push(new Task(JSON.parse(taskAsString)))
+				}
+				return result;
 			}
-			return result;
-		}
+		});
+
+		
 
 		//TaskController
-		taskManager.controller('taskController', function($scope){
+		taskManager.controller('taskController', function($scope, taskStorage){
 
-			var taskStorage = new TaskStorage();
+			//var taskStorage = new TaskStorage();
 			
 			$scope.tasks = taskStorage.getAll();
 
