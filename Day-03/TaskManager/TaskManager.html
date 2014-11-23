@@ -14,16 +14,34 @@
 	</style>
 	<script>
 		var taskManager = angular.module('taskManager',[]);
+		
+		function Task(defaults){
+			
+			defaults = defaults || {};
+			this.name = defaults.name || '';
+			this.isCompleted = defaults.isCompleted || false;
+		}
+		Task.prototype.toggle = function(){
+			this.isCompleted = !this.isCompleted;
+		};
+
 		taskManager.controller('taskController', function($scope){
+
 			$scope.tasks = [
-				{name : 'Task - 1', isCompleted : true}, 
-				{name : 'Task - 2', isCompleted : false}
+				new Task({name : 'Task - 1', isCompleted : true}), 
+				new Task({name : 'Task - 2', isCompleted : false})
 			];
+			$scope.getCompletedCount = function(){
+				return $scope.tasks.reduce(function(result, task){
+					return task.isCompleted ? ++result : result;
+				},0);
+			}
 			$scope.addTask = function(taskName){
-				$scope.tasks.push({name : taskName, isCompleted : false});
+
+				$scope.tasks.push(new Task({name : taskName}));
 			};
 			$scope.toggleCompletion = function(task){
-				task.isCompleted = !task.isCompleted;				
+				task.toggle();				
 			};
 			$scope.removeCompleted = function(){
 				$scope.tasks = $scope.tasks.filter(function(task){
@@ -36,6 +54,7 @@
 <body>
 	<div data-ng-controller="taskController">
 		<h1>Task Manager</h1>
+		<h3>[{{getCompletedCount()}} / {{tasks.length}}]</h3>
 		<hr>
 		<label for="">Task :</label>
 		<input type="text" ng-model="taskName">
