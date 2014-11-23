@@ -16,20 +16,23 @@
 		var taskManager = angular.module('taskManager',[]);
 		
 		//Task constructor Function
-		function Task(defaults){
-			
-			defaults = defaults || {};
-			this.id = defaults.id || new Date().getTime().toString();
-			this.name = defaults.name || '';
-			this.isCompleted = defaults.isCompleted || false;
-		}
-		Task.prototype.toggle = function(){
-			this.isCompleted = !this.isCompleted;
-		};
+		taskManager.factory('Task', function(){
+			function Task(defaults){
+				defaults = defaults || {};
+				this.id = defaults.id || new Date().getTime().toString();
+				this.name = defaults.name || '';
+				this.isCompleted = defaults.isCompleted || false;
+			}
+			Task.prototype.toggle = function(){
+				this.isCompleted = !this.isCompleted;
+			};	
+			return Task;
+		});
+		
 
 
 		//Task Storage constructor function
-		taskManager.service('taskStorage', function TaskStorage(){
+		taskManager.service('taskStorage', function(Task){
 			this.save = function(task){
 				task.id = task.id || new Date().getTime().toString();
 				localStorage.setItem(task.id, JSON.stringify(task));
