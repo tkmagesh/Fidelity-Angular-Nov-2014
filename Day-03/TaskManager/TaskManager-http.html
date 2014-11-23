@@ -33,12 +33,12 @@
 			.controller('taskViewController', function($scope){
 
 			})
-			.controller('taskController', function($scope, taskStorage){
+			.controller('taskController', function($scope, taskStorage, $http, Task){
 
 			//var taskStorage = new TaskStorage();
 				
 				var tasks = {
-					list : taskStorage.getAll(),
+					list : [],
 
 					getCompletedCount : function(){
 						return this.list.reduce(function(result, task){
@@ -66,12 +66,15 @@
 						});
 					}
 				};
+				taskStorage.getAll().then(function(tasksData){
+					tasks.list = tasksData;
+				});
 				$scope.tasks = tasks;
 				
 			});
 
 		angular.module('taskManager.services', [])
-			.service('taskStorage', function(Task){
+			.service('taskStorage', function(Task, $http, $q){
 				this.save = function(task){
 					task.id = task.id || new Date().getTime().toString();
 					if (!task.createdAt)
@@ -84,13 +87,15 @@
 					localStorage.removeItem(taskId);
 				};
 				this.getAll = function(){
-					var result = [];
-					for(var i=0;i<localStorage.length;i++){
-						var key = localStorage.key(i);
-						var taskAsString = localStorage.getItem(key);
-						result.push(new Task(JSON.parse(taskAsString)))
-					}
-					return result;
+					var defered = $q.defer();
+					var httpPromise = $http.get('/tasks');
+					httpPromise.then(function(response){
+						var result = response.data.map(function(taskData){
+							return new Task(taskData);
+						});
+						defered.resolve(result);
+					})
+					return defered.promise;
 				}
 			});
 
