@@ -15,9 +15,11 @@
 	<script>
 		var taskManager = angular.module('taskManager',[]);
 		
+		//Task constructor Function
 		function Task(defaults){
 			
 			defaults = defaults || {};
+			this.id = defaults.id || new Date().getTime().toString();
 			this.name = defaults.name || '';
 			this.isCompleted = defaults.isCompleted || false;
 		}
@@ -25,29 +27,62 @@
 			this.isCompleted = !this.isCompleted;
 		};
 
+		//Task Storage constructor function
+		function TaskStorage(){
+
+		};
+
+		TaskStorage.prototype.save = function(task){
+			task.id = task.id || new Date().getTime().toString();
+			localStorage.setItem(task.id, JSON.stringify(task));
+			return new Task(task);
+		};
+		TaskStorage.prototype.remove = function(taskId){
+			localStorage.removeItem(taskId);
+		};
+		TaskStorage.prototype.getAll = function(){
+			var result = [];
+			for(var i=0;i<localStorage.length;i++){
+				var key = localStorage.key(i);
+				var taskAsString = localStorage.getItem(key);
+				result.push(new Task(JSON.parse(taskAsString)))
+			}
+			return result;
+		}
+
+		//TaskController
 		taskManager.controller('taskController', function($scope){
 
-			$scope.tasks = [
-				new Task({name : 'Task - 1', isCompleted : true}), 
-				new Task({name : 'Task - 2', isCompleted : false})
-			];
+			var taskStorage = new TaskStorage();
+			
+			$scope.tasks = taskStorage.getAll();
+
 			$scope.getCompletedCount = function(){
 				return $scope.tasks.reduce(function(result, task){
 					return task.isCompleted ? ++result : result;
 				},0);
 			}
 			$scope.addTask = function(taskName){
-
-				$scope.tasks.push(new Task({name : taskName}));
+				var newTask = taskStorage.save({name : taskName});
+				$scope.tasks.push(newTask);
 			};
 			$scope.toggleCompletion = function(task){
-				task.toggle();				
+				task.toggle();		
+				taskStorage.save(task);		
 			};
 			$scope.removeCompleted = function(){
+				for(var i=$scope.tasks.length-1;i>=0;i--){
+					var task = $scope.tasks[i];
+					if (task.isCompleted){
+						taskStorage.remove(task);
+						$scope.tasks.splice(i,1);
+					}
+				}
 				$scope.tasks = $scope.tasks.filter(function(task){
 					return !task.isCompleted;
 				});
 			}
+			
 		});
 	</script>
 </head>
