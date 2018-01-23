@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Manager</title>
+    <style>
+        .completed{
+            color : red;
+            text-decoration: line-through;
+            font-style: italic;
+            font-weight: bold;
+        }
+        #olTaskList > li{
+            cursor: pointer;
+        }
+        .divMessage{
+            margin: 5px;
+            padding: 5px;
+            border: 2px solid black;
+            border-radius: 3px;
+            background: -webkit-linear-gradient(top,  gray 0% ,  #fff 100% );
+        }
+        #divMessages{
+            position: absolute;
+            bottom: 0px;
+            right: 0px;
+            
+        }
+    </style>
+    <script src="jquery-2.1.1.js"></script>
+    <script>
+    (function(){
+        $(function (){
+            $("#btnAdd").on("click",onBtnAddClick);
+            $("#btnRemoveCompleted").click(onBtnRemoveCompletedClick);
+            //$("#olTaskList").on("click", "li", onTaskItemClick); 
+            $("#olTaskList").delegate("li", "click", onTaskItemClick); 
+            
+            setInterval(function(){
+                displayMessage("Current time is " + new Date().toTimeString());
+            },5000)
+        });
+        function onBtnAddClick(){
+            if ($("#txtTask").val() !== ""){
+                $("<li></li>")
+                    .html($("#txtTask").val())
+                    .appendTo("#olTaskList");
+                displayMessage("A new task is added");
+            }
+        }
+        function onTaskItemClick(){
+            $(this).toggleClass("completed");
+        }
+        function onBtnRemoveCompletedClick(){
+            $("#olTaskList > li.completed").remove();
+            displayMessage("Zero or more completed tasks are removed");
+        }
+        function displayMessage(msg){
+            $("<div></div>")
+                .addClass("divMessage")
+                .hide()
+                .html(msg)
+                .appendTo("#divMessages")
+                .slideDown('slow')
+                .delay(2000)
+                .slideUp('fast', function(){
+                    $(this).remove();
+                });
+        }
+    })();
+    </script>
+</head>
+<body>
+    <h1>Task Manager</h1>
+    <hr>
+    <span>Task :</span>
+    <input type="text" name="" id="txtTask">
+    <input type="button" value="Add Task" id="btnAdd">
+    <input type="button" value="Remove Completed" id="btnRemoveCompleted">
+    <ol id="olTaskList">
+        <li>Task - 1</li>
+        <li>Task - 2</li>
+        <li>Task - 3</li>
+    </ol>
+    <div id="divMessages"></div>
+</body>
+</html>

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" ng-app = "myApp">
+<head>
+	<meta charset="UTF-8">
+	<title>Nested Controllers</title>
+	<style>
+		div {
+			margin : 20px;
+			padding : 10px;
+		}
+		.parent {
+			border : 2px solid blue;
+			background-color: lightblue;
+		}
+		.child {
+			border : 2px solid red;
+			background-color: lightpink;
+		}
+	</style>
+	<script src="angular.min.1.3.3.js"></script>
+	<script>
+		angular.module("myApp",[])
+			.controller("parentController", function($scope){
+				$scope.data = {name : "Magesh"}
+			})
+			.controller("childController", function($scope){
+
+			})
+	</script>
+</head>
+<body>
+	<div class="parent" data-ng-controller="parentController">
+		<input type="text" data-ng-model="data.name">
+		<div>{{data.name}}</div>
+		<div class="child" data-ng-controller="childController">
+			<input type="text" data-ng-model="data.name">
+			<div>{{data.name}}</div>
+		</div>
+	</div>
+</body>
+</html>

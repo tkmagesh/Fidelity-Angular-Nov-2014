@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="taskManager">
+<head>
+	<meta charset="UTF-8">
+	<title>Task Manager</title>
+	<script src="moment.js"></script>
+	<script src="angular.min.1.3.3.js"></script>
+	<style>
+	input, textarea{
+		display : block;
+	}
+	input[type='button']{
+		display : inline;
+	}
+	h1,h3{
+		margin : 10px;
+	}
+	.completed {
+		color : red;
+		text-decoration: line-through;
+		font-style: italic;
+		font-weight: bold;
+	}
+	</style>
+	<script>
+		angular.module('taskManager.controllers', [])
+			.controller('appController', function($scope){
+				$scope.selectedTask = undefined;
+				$scope.setSelectedTask = function(task){
+					$scope.selectedTask = task;
+				}
+			})
+			.controller('taskViewController', function($scope){
+
+			})
+			.controller('taskController', function($scope, taskStorage, $http, Task){
+
+			//var taskStorage = new TaskStorage();
+				
+				var tasks = {
+					list : [],
+
+					getCompletedCount : function(){
+						return this.list.reduce(function(result, task){
+							return task.isCompleted ? ++result : result;
+						},0)
+					},
+					addTask : function(taskName, taskDescription){
+						var newTask = taskStorage.save({name : taskName, desc : taskDescription});
+						this.list.push(newTask);
+					},
+					toggleCompletion : function(task){
+						task.toggle();		
+						taskStorage.save(task);		
+					},
+					removeCompleted : function(){
+						for(var i=this.list.length-1;i>=0;i--){
+							var task = this.list[i];
+							if (task.isCompleted){
+								taskStorage.remove(task);
+								this.list.splice(i,1);
+							}
+						}
+						this.list = this.list.filter(function(task){
+							return !task.isCompleted;
+						});
+					}
+				};
+				taskStorage.getAll().then(function(tasksData){
+					tasks.list = tasksData;
+				});
+				$scope.tasks = tasks;
+				
+			});
+
+		angular.module('taskManager.services', [])
+			.service('taskStorage', function(Task, $http, $q){
+				this.save = function(task){
+					task.id = task.id || new Date().getTime().toString();
+					if (!task.createdAt)
+						task.createdAt = new Date();
+					task.updatedAt = new Date();
+					localStorage.setItem(task.id, JSON.stringify(task));
+					return new Task(task);
+				};
+				this.remove = function(taskId){
+					localStorage.removeItem(taskId);
+				};
+				this.getAll = function(){
+					var defered = $q.defer();
+					var httpPromise = $http.get('/tasks');
+					httpPromise.then(function(response){
+						var result = response.data.map(function(taskData){
+							return new Task(taskData);
+						});
+						defered.resolve(result);
+					})
+					return defered.promise;
+				}
+			});
+
+
+		angular.module('taskManager.factories', [])
+			.factory('Task', function(){
+				function Task(defaults){
+					defaults = defaults || {};
+					this.id = defaults.id || new Date().getTime().toString();
+					this.name = defaults.name || '';
+					this.desc = defaults.desc || '';
+					this.createdAt = defaults.createdAt;
+					this.updatedAt = defaults.updatedAt;
+					this.isCompleted = defaults.isCompleted || false;
+				}
+				Task.prototype.toggle = function(){
+					this.isCompleted = !this.isCompleted;
+					this.updatedAt = new Date();
+				};	
+				return Task;
+			});
+
+		angular.module('taskManager.filters', [])
+			.filter('formateDate', function(){
+				return function(date){
+					return moment(date).fromNow();
+				}
+			});
+
+		angular.module('taskManager',[
+				'taskManager.controllers'
+				,'taskManager.services'
+				,'taskManager.factories'
+				,'taskManager.filters'
+		]);
+
+		
+	</script>
+</head>
+<body data-ng-controller="appController">
+	<div data-ng-controller="taskController">
+		<h1>Task Manager</h1>
+		<h3>[{{tasks.getCompletedCount()}} / {{tasks.list.length}}]</h3>
+		<div>
+			<input type="search" ng-model="searchTerm.name">
+			<select data-ng-model="sortTask">
+				<option value="id">id</option>
+				<option value="name">name</option>
+				<option value="desc">desc</option>
+				<option value="createdAt">createdAt</option>
+				<option value="updatedAt">updatedAt</option>
+			</select>
+			<input type="checkbox" data-ng-model="sortByReverse"> Reverse?</input>
+		</div>
+		<hr>
+		<label for="">Task :</label>
+		<input type="text" ng-model="taskName">
+		<label for="">Description</label>
+		<textarea cols="30" rows="3" ng-model="taskDescription"></textarea>
+		<input type="button" value="Add Task"  ng-click="tasks.addTask(taskName, taskDescription)">
+		<input type="button" value="Remove Completed" data-ng-click="tasks.removeCompleted()">
+		<ol>
+			<li data-ng-repeat="task in tasks.list | orderBy:sortTask:sortByReverse | filter:searchTerm"> 
+				<span data-ng-class="{completed : task.isCompleted}">{{task.name}}</span>
+				<input type="button" ng-click="tasks.toggleCompletion(task)" value="Toggle"></input>
+				<input type="button" ng-click="setSelectedTask(task)" value="View"></input>
+			</li>
+		</ol>	
+	</div>
+	<div data-ng-controller="taskViewController" data-ng-hide="!selectedTask">
+		<hr>
+		<h2>Task Details</h2>
+		<h3>{{selectedTask.name }}</h3>
+		<div>{{selectedTask.desc}}</div>
+		<div>Created At :{{selectedTask.createdAt | formateDate }}</div>
+		<div>Updated At :{{selectedTask.updatedAt | formateDate	}}</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Salary Calculator</title>
+    <style>
+        #divResult{
+            font-size: 28pt;
+            color : red;
+        }
+        label{
+            display: block;
+        }
+    </style>
+    <script src="jquery-2.1.1.js"></script>
+    <script>
+        //Model
+        function SalaryCalculator(){
+            var _data = {
+                basic : 0,
+                hra : 0,
+                da : 0,
+                tax : 0,
+                salary : 0
+            };
+            this.get = function(attrName){
+                return _data[attrName];
+            };
+            this.set = function(attrName,value){
+                _data[attrName] = value;
+                //notify subscribers of attrName changes
+                triggerSubscriptions(attrName,[value]);
+            };
+            
+            var _subscribers = {};
+            this.addSubscriber = function (attrName,subscriptionFn){
+                _subscribers[attrName] = _subscribers[attrName] || [];
+                _subscribers[attrName].push(subscriptionFn);
+            };
+            this.removeSubscriber = function(){
+                //
+            };
+            var _self = this;
+            function triggerSubscriptions (attrName, evtArgArr){
+                var subscriptionFns = _subscribers[attrName] || [];
+                subscriptionFns.forEach(function(subscriptionFn){
+                    subscriptionFn.apply(_self, evtArgArr);
+                });
+            }
+            
+            this.onSalaryChange = undefined;
+        }
+        SalaryCalculator.prototype.calculate = function(){
+            var gross = this.get('basic') + this.get('hra') + this.get('da');
+            var net = gross * ((100-this.get('tax'))/100);
+            this.set('salary', net);
+        }
+    
+        //View
+        $(function(){
+            window.calculator = new SalaryCalculator();
+            
+            //model changes
+            calculator.addSubscriber('salary', function(value){
+                console.log(this);
+                $("#divResult").html(this.get('salary'));
+            });
+
+            calculator.addSubscriber('basic', function(value){
+                $("#txtBasic").val(value);
+            });
+
+            calculator.addSubscriber('hra', function(value){
+                $("#txtHra").val(value);
+            });
+
+            calculator.addSubscriber('da', function(value){
+                $("#txtDa").val(value);
+            });
+
+            calculator.addSubscriber('tax', function(value){
+                $("#rangeTax").val(value);
+                $("#spanTax").html(value + '%');
+            });
+            
+            //view changes
+            $("#txtBasic").change(function(){
+                calculator.set('basic',this.value,10);
+            });
+            $("#txtHra").change(function(){
+                calculator.set('hra', parseInt($("#txtHra").val(),10));
+            });
+            $("#txtDa").change(function(){
+                calculator.set('da', parseInt($("#txtDa").val(),10));
+            });
+            $("#rangeTax").change(function(){
+                calculator.set('tax', parseInt($("#rangeTax").val(),10));
+            });
+            $("#btnCalculate").click(function(){
+                calculator.calculate();
+            });
+            
+        });
+        </script>
+</head>
+<body>
+    <h1>Salary Calculator</h1>
+    <hr>
+    <div><label for="">Basic :</label><input type="text" name="" id="txtBasic"></div>
+    <div><label for="">Hra :</label><input type="text" name="" id="txtHra"></div>
+    <div><label for="">Da :</label><input type="text" name="" id="txtDa"></div>
+    <div>
+        <label for="">Tax :</label>
+        <input type="range" name="" id="rangeTax" min="0" max="30" value="0">
+        <span id="spanTax">[Tax%]</span>
+    </div>
+    <div><input type="button" value="Calculate" id="btnCalculate"></div>
+    <div>
+        <div id="divResult">[Salary]</div>
+    </div>
+</body>
+</html>
